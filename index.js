@@ -1,40 +1,45 @@
 var mustache = require("./lib/mustache");
+
+/**
+ * Compile the given `str` of ejs into a `Function`.
+**/
+var compile = exports.compile = function(str, options) {
+  // Should we load in a View class?
+  var View;
+  
+  if (process && process.title == "node") {
+    if (options.filename) {
+      var path = require("path"),
+          viewPath = options.filename + ".js";
+      
+      if (path.existsSync(viewPath)) {
+        View = require(viewPath);
+      }
+    }
+  }
+  
+  return function(data){
+    if (View) data = new View(data);
+    return mustache.to_html(str, data);
+  };
+};
+
+
 var cache = {};
 
 exports.clearCache = function(){
   cache = {};
 };
 
-//TODO: example: https://github.com/visionmedia/ejs/blob/master/lib/ejs.js
 
 /**
- * Compile the given `str` of ejs into a `Function`.
- *
- * @param {String} str
- * @param {Object} options
- * @return {Function}
- * @api public
-**/
-var compile = exports.compile = function(str) {
-  // load view.js class, cach it with the view path name
-  // load up the view mustache file, cach it with the view path name
-  return function(data){
-    return mustache.to_html(str, data);
-  };
-};
-
-/**
- * Render the given `str` of ejs.
+ * Render the given `str` of mustache.
  *
  * Options:
  *
  *   - `locals`          Local variables object
  *   - `cache`           Compiled functions are cached, requires `filename`
  *   - `filename`        Used by `cache` to key caches
- *   - `scope`           Function execution context
- *   - `debug`           Output generated function body
- *   - `open`            Open tag, defaulting to "<%"
- *   - `close`           Closing tag, defaulting to "%>"
  *
  * @param {String} str
  * @param {Object} options
@@ -42,23 +47,64 @@ var compile = exports.compile = function(str) {
  * @api public
 **/
 exports.render = function(str, options) {
-  var fn = null,
-      // Pull data out of the options, if present
-      data = (options && options.locals) ? options.locals : {} ;
-
   options = options || {};
   
+  var fn = null,
+      filename = options.filename,
+      // Pull data out of the options, if present
+      data = (options.locals) ? options.locals : {} ;
+  
   if (options.cache) {
-    if (options.filename) {
-      fn = cache[options.filename] || (cache[options.filename] = compile(str));
+    if (filename) {
+      fn = cache[filename] || (cache[filename] = compile(str, options));
     } else {
       throw new Error('"cache" option requires "filename".');
     }
   } else {
-    fn = compile(str);
+    fn = compile(str, options);
   }
   
   return fn(data || {});
+};
+
+/**
+ * class View
+ * new View(data) -> View
+ * - data(Object): Data to wrap in the view.
+**/
+var View = exports.View = function(data) {
+  this._data = _data = {};
+  var self = this;
+  for(var key in data) {
+    _data[key] = data[key];
+    
+    if (typeof this[key] == "undefined") {
+      // Make properties on the model instance for all props that are not defined.
+      (function(key) {
+        Object.defineProperty(self, key, {
+          get: function() { return _data[key]; },
+          set: function(value) { _data[key] = value; },
+          enumerable : true
+        });
+      })(key);
+    }
+  }
+  
+  if (this.initialize) this.initialize();
+};
+
+View.create = function(def) {
+  var result = function(data) {
+    View.call(this, data);
+  };
+  
+  result.prototype = Object.create(View.prototype);
+
+  for (var prop in def) {
+    result.prototype[prop] = def[prop];
+  }
+  
+  return result;
 };
 
 /**
@@ -66,11 +112,11 @@ exports.render = function(str, options) {
 **/
 if (require.extensions) {
   require.extensions['.mustache'] = function(module, filename) {
-    source = require('fs').readFileSync(filename, 'utf-8');
-    module._compile(compile(source, {}), filename);
+    var source = require('fs').readFileSync(filename, 'utf-8');
+    module._compile(compile(source, {filename: filename}), filename);
   };
 } else if (require.registerExtension) {
   require.registerExtension('.mustache', function(src) {
-    return compile(src, {});
+    return compile(src, {filename: filename});
   });
 }

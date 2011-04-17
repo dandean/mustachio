@@ -13,5 +13,7 @@
     "node": "*"
   },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "express" : "> 1.9.9"
+  }
 }

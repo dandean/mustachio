@@ -1,9 +1,3 @@
-
-
-/**
- * Module dependencies.
- */
-
 var assert = require("assert");
 var mustache = require("../index");
 
