@@ -1,34 +1,51 @@
 var mustache = require("./lib/mustache");
 
-/**
- * Compile the given `str` of ejs into a `Function`.
-**/
-var compile = exports.compile = function(str, options) {
-  // Should we load in a View class?
-  var View;
-  
-  if (process && process.title == "node") {
-    if (options.filename) {
-      var path = require("path"),
-          viewPath = options.filename + ".js";
-      
-      if (path.existsSync(viewPath)) {
-        View = require(viewPath);
-      }
-    }
-  }
-  
-  return function(data){
-    if (View) data = new View(data);
-    return mustache.to_html(str, data);
-  };
+var viewCache = {};
+var templateCache = {};
+
+exports.clearCache = function(){
+  viewCache = {};
+  templateCache = {};
 };
 
 
-var cache = {};
+/**
+ * Compile the given `str` of mustache into a `Function`.
+**/
+var compile = exports.compile = function(str, options) {
+  options = options || {};
 
-exports.clearCache = function(){
-  cache = {};
+  // Grab cached view if present, or provided View if present.
+  var View = (options.cache && options.filename && viewCache[options.filename]) ?
+              viewCache[options.filename] : options.View;
+
+  // If no view yet, check for, and load, the View class...
+  if (!View && options.filename && process && process.title == "node") {
+    // No cached view, load the file from disk if possible...
+    var path = require("path"),
+        viewPath = options.filename + ".js"; // mytemplate.mustache.js
+
+    if (path.existsSync(viewPath)) {
+      // Load the view...
+      View = require(viewPath);
+    }
+  }
+  
+  var render = function(data){
+    if (View) data = new View(data);
+    return mustache.to_html(str, data);
+  };
+
+  if (options.cache && options.filename) {
+    if (View && !viewCache[options.filename]) {
+      // Cache the view if caching is enabled...
+      // TODO: How does caching the view here affect Express?
+      viewCache[options.filename] = View;
+    }
+    templateCache[options.filename] = render;
+  }
+  
+  return render;
 };
 
 
@@ -48,22 +65,8 @@ exports.clearCache = function(){
 **/
 exports.render = function(str, options) {
   options = options || {};
-  
-  var fn = null,
-      filename = options.filename,
-      // Pull data out of the options, if present
-      data = (options.locals) ? options.locals : {} ;
-  
-  if (options.cache) {
-    if (filename) {
-      fn = cache[filename] || (cache[filename] = compile(str, options));
-    } else {
-      throw new Error('"cache" option requires "filename".');
-    }
-  } else {
-    fn = compile(str, options);
-  }
-  
+  var data = (options.locals) ? options.locals : {} ;
+  var fn = compile(str, options);
   return fn(data || {});
 };
 
@@ -110,13 +113,13 @@ View.create = function(def) {
 /**
  * Expose to require().
 **/
-if (require.extensions) {
-  require.extensions['.mustache'] = function(module, filename) {
-    var source = require('fs').readFileSync(filename, 'utf-8');
-    module._compile(compile(source, {filename: filename}), filename);
-  };
-} else if (require.registerExtension) {
-  require.registerExtension('.mustache', function(src) {
-    return compile(src, {filename: filename});
-  });
-}
+// if (require.extensions) {
+//   require.extensions['.mustache'] = function(module, filename) {
+//     var source = require('fs').readFileSync(filename, 'utf-8');
+//     module._compile(compile(source, {filename: filename}), filename);
+//   };
+// } else if (require.registerExtension) {
+//   require.registerExtension('.mustache', function(src) {
+//     return compile(src, {filename: filename});
+//   });
+// }
