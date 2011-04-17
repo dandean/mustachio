@@ -1,0 +1,17 @@
+{
+  "author": "Dan Dean <@dandean> (http://dandean.com)",
+  "name": "express-mustache",
+  "description": "Mustache templates for Express.js",
+  "version": "0.0.0",
+  "repository": {
+    "url": ""
+  },
+  "directories": {
+    "lib": "."
+  },
+  "engines": {
+    "node": "*"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

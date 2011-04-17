@@ -1,0 +1,91 @@
+var fs = require("fs"),
+    path = require("path"),
+    exec = require("child_process").exec,
+    child;
+
+
+function fail(message) {
+  console.log("--------------------------------------------------------------------------------");
+  console.log("Could not complete build process: " + message);
+  console.log("--------------------------------------------------------------------------------");
+}
+
+function getRemoteFileContent(url, cb) {
+  // TODO: handle lack of `curl`
+  exec('curl ' + url,
+    function (error, stdout, stderr) {
+      if (error) {
+        console.error(error);
+      }
+      cb(error, stdout);
+  });
+}
+
+function getMustacheFile(cb) {
+  var result = "",
+      urls = [
+        "https://github.com/janl/mustache.js/raw/master/mustache-commonjs/mustache.js.tpl.pre",
+        "https://github.com/janl/mustache.js/raw/master/mustache.js",
+        "https://github.com/janl/mustache.js/raw/master/mustache-commonjs/mustache.js.tpl.post"
+      ],
+      next;
+  
+  var get = function(url) {
+    getRemoteFileContent(url, function(e, content) {
+      if (e) {
+        fail("Unable to find the remote file " + url);
+        return;
+      }
+
+      result += content;
+      
+      if ((next = urls.shift())) {
+        get(next);
+      } else {
+        cb(null, result);
+      }
+    });
+  };
+  
+  get(urls.shift());
+}
+
+
+
+desc('This is the default task.');
+task('default', [], function () {
+  console.log('This is the default task.');
+});
+
+// TODO: add dev dependencies for jake and expresso
+// TODO: write tests that show this package working with Express.js
+// TODO: define file.mustache.js class prototype, and load it when the view is requested
+// TODO: file.mustache and file.mustache.js
+
+desc('Test the distribution');
+task('test', [], function () {
+  /*
+    - test with expresso
+  */
+});
+
+desc("Build the distribution");
+task("build", [], function () {
+  console.log("Cleaning out the file system...");
+
+  exec("rm -rf ./lib", function(e, stdout, stderr) {
+    console.log("Creating files...");
+
+    exec("mkdir ./lib && touch ./lib/mustache.js", function(e, stdout, stderr) {
+      console.log("Fetching remote assets...");
+
+      getMustacheFile(function(e, content) {
+        console.log("Saving mustache.js...");
+
+        fs.writeFile("./lib/mustache.js", content, function(e) {
+          console.log("DONE!");
+        });
+      });
+    });
+  });
+});
