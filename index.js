@@ -19,19 +19,19 @@ var compile = exports.compile = function(str, options) {
   var view,
       filename = options.filename;
   
-  if (options.cache && options.filename && viewCache[options.filename]) {
+  if (options.cache && filename && viewCache[filename]) {
     // If caching enabled, and filename provided, check for cached View
-    view = viewCache[options.filename];
+    view = viewCache[filename];
   } else {
     // Use the provided View, if provided...
     view = options.view;
   }
 
   // If no view yet, check for and load the View class file...
-  if (!view && options.filename && process && process.title == "node") {
+  if (!view && filename && process && process.title == "node") {
     // No cached view, load the file from disk if possible...
     var path = require("path"),
-        viewPath = options.filename + ".js"; // mytemplate.mustache.js
+        viewPath = filename + ".js"; // mytemplate.mustache.js
 
     if (path.existsSync(viewPath)) {
       // Load the view...
@@ -44,13 +44,13 @@ var compile = exports.compile = function(str, options) {
     return mustache.to_html(str, data);
   };
 
-  if (options.cache && options.filename) {
-    if (view && !viewCache[options.filename]) {
+  if (options.cache && filename) {
+    if (view && !viewCache[filename]) {
       // Cache the view if caching is enabled...
       // TODO: How does caching the view here affect Express?
-      viewCache[options.filename] = view;
+      viewCache[filename] = view;
     }
-    templateCache[options.filename] = render;
+    templateCache[filename] = render;
   }
   
   return render;
