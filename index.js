@@ -16,31 +16,39 @@ var compile = exports.compile = function(str, options) {
   options = options || {};
 
   // Grab cached view if present, or provided View if present.
-  var View = (options.cache && options.filename && viewCache[options.filename]) ?
-              viewCache[options.filename] : options.View;
+  var view,
+      filename = options.filename;
+  
+  if (options.cache && options.filename && viewCache[options.filename]) {
+    // If caching enabled, and filename provided, check for cached View
+    view = viewCache[options.filename];
+  } else {
+    // Use the provided View, if provided...
+    view = options.view;
+  }
 
-  // If no view yet, check for, and load, the View class...
-  if (!View && options.filename && process && process.title == "node") {
+  // If no view yet, check for and load the View class file...
+  if (!view && options.filename && process && process.title == "node") {
     // No cached view, load the file from disk if possible...
     var path = require("path"),
         viewPath = options.filename + ".js"; // mytemplate.mustache.js
 
     if (path.existsSync(viewPath)) {
       // Load the view...
-      View = require(viewPath);
+      view = require(viewPath);
     }
   }
   
   var render = function(data){
-    if (View) data = new View(data);
+    if (view) data = loadView(view, data);
     return mustache.to_html(str, data);
   };
 
   if (options.cache && options.filename) {
-    if (View && !viewCache[options.filename]) {
+    if (view && !viewCache[options.filename]) {
       // Cache the view if caching is enabled...
       // TODO: How does caching the view here affect Express?
-      viewCache[options.filename] = View;
+      viewCache[options.filename] = view;
     }
     templateCache[options.filename] = render;
   }
@@ -70,56 +78,56 @@ exports.render = function(str, options) {
   return fn(data || {});
 };
 
+// PRIVATE
+
 /**
- * class View
- * new View(data) -> View
- * - data(Object): Data to wrap in the view.
+ * loadView(view, data) -> view
+ * - view(Object): View object used by the template
+ * - data(Object): Source data which populates the view
+ *
+ * Loads the view object using the data object as the source. If `data` contains
+ * properties not found on `view`, and getter/setter is created to access it from
+ * `view`'s internal data store.
+ *
+ * Known Express options are not applied to the root-level of `view`, but are
+ * accessible from the internal `_env` object: `this._env.filename`.
 **/
-var View = exports.View = function(data) {
-  this._data = _data = {};
-  var self = this;
-  for(var key in data) {
-    _data[key] = data[key];
+function loadView(view, data) {
+  view._data = data;
+  view._env = {};
+
+  // Filter Express data out of the root-level view data.
+  filter : for(var key in data) {
+    switch (key) {
+      case "layout":
+      case "scope":
+      case "parentView":
+      case "root":
+      case "defaultEngine":
+      case "settings":
+      case "app":
+      case "partial":
+      case "filename":
+        view._env[key] = data[key];
+        continue filter;
+      default: break;
+    }
     
-    if (typeof this[key] == "undefined") {
-      // Make properties on the model instance for all props that are not defined.
+    view._data[key] = data[key];
+    
+    if (typeof view[key] == "undefined") {
+      // Create get/set properties pointing from the view -> view._data for any
+      // properties *not* overridden by the view object.
       (function(key) {
-        Object.defineProperty(self, key, {
-          get: function() { return _data[key]; },
-          set: function(value) { _data[key] = value; },
+        Object.defineProperty(view, key, {
+          get: function() { return view._data[key]; },
+          set: function(value) { view._data[key] = value; },
           enumerable : true
         });
       })(key);
     }
   }
   
-  if (this.initialize) this.initialize();
-};
-
-View.create = function(def) {
-  var result = function(data) {
-    View.call(this, data);
-  };
-  
-  result.prototype = Object.create(View.prototype);
-
-  for (var prop in def) {
-    result.prototype[prop] = def[prop];
-  }
-  
-  return result;
-};
-
-/**
- * Expose to require().
-**/
-// if (require.extensions) {
-//   require.extensions['.mustache'] = function(module, filename) {
-//     var source = require('fs').readFileSync(filename, 'utf-8');
-//     module._compile(compile(source, {filename: filename}), filename);
-//   };
-// } else if (require.registerExtension) {
-//   require.registerExtension('.mustache', function(src) {
-//     return compile(src, {filename: filename});
-//   });
-// }
+  if (view.initialize) view.initialize.call(view);
+  return view;
+}
