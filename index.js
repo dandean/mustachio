@@ -17,14 +17,17 @@ var compile = exports.compile = function(str, options) {
 
   // Grab cached view if present, or provided View if present.
   var view,
-      filename = options.filename;
+      filename = options.filename,
+      logging = options.logging;
   
   if (options.cache && filename && viewCache[filename]) {
     // If caching enabled, and filename provided, check for cached View
     view = viewCache[filename];
+    if (logging) console.log("Getting view from cache: ", view);
   } else {
     // Use the provided View, if provided...
     view = options.view;
+    if (logging) console.log("Use view from options: ", view);
   }
 
   // If no view yet, check for and load the View class file...
@@ -36,12 +39,13 @@ var compile = exports.compile = function(str, options) {
     if (path.existsSync(viewPath)) {
       // Load the view...
       view = require(viewPath);
+      if (logging) console.log("Loading view from disk: ", view);
     }
   }
   
   var render = function(data){
-    if (view) data = loadView(view, data);
-    return mustache.to_html(str, data);
+    if (logging) console.log("Rendering: ", view);
+    return mustache.to_html(str, loadView(view, data));
   };
 
   if (options.cache && filename) {
@@ -49,6 +53,7 @@ var compile = exports.compile = function(str, options) {
       // Cache the view if caching is enabled...
       // TODO: How does caching the view here affect Express?
       viewCache[filename] = view;
+      if (logging) console.log("Caching view: ", view);
     }
     templateCache[filename] = render;
   }
@@ -93,6 +98,9 @@ exports.render = function(str, options) {
  * accessible from the internal `_env` object: `this._env.filename`.
 **/
 function loadView(view, data) {
+  // Clone the view before use, and use a default empty view if not provided.
+  view = Object.create(view || {});
+
   view._data = data;
   view._env = {};
 

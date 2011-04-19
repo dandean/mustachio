@@ -10,7 +10,9 @@ app.configure(function() {
   app.set('views', __dirname + '/fixtures');
   app.set('cache views', true);
   app.set('view options', {
-    layout: false
+    layout: false,
+    cache: true,
+    logging: true
   });
   app.use(app.router);
 });
@@ -19,13 +21,15 @@ app.get('/', function(req, res){
   res.render("test1", { value: "abc" });
 });
 
-// TODO: May need to create an express resources folder somewhere
-module.exports = {
-  'express : mustache': function() {
-    assert.response(app, { url: '/' },
-      { status: 200, body: "ABC" }
-    );
-  }
-};
+if (module.parent) {
+  module.exports = {
+    'express : mustache': function() {
+      assert.response(app, { url: '/' },
+        { status: 200, body: "ABC" }
+      );
+    }
+  };
+} else {
+  app.listen(3000);
+}
 
-// app.listen(3000);
