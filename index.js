@@ -44,6 +44,8 @@ var compile = exports.compile = function(str, options) {
   }
   
   var render = function(data){
+    // If Express is configured to cache views (app.set('cache views', true);),
+    // this method will be cached.
     if (logging) console.log("Rendering: ", view);
     return mustache.to_html(str, loadView(view, data));
   };
@@ -51,7 +53,6 @@ var compile = exports.compile = function(str, options) {
   if (options.cache && filename) {
     if (view && !viewCache[filename]) {
       // Cache the view if caching is enabled...
-      // TODO: How does caching the view here affect Express?
       viewCache[filename] = view;
       if (logging) console.log("Caching view: ", view);
     }
@@ -68,7 +69,7 @@ var compile = exports.compile = function(str, options) {
  * Options:
  *
  *   - `locals`          Local variables object
- *   - `cache`           Compiled functions are cached, requires `filename`
+ *   - `cache`           Compiled functions are cached, requires `filename`.
  *   - `filename`        Used by `cache` to key caches
  *
  * @param {String} str
