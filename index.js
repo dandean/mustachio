@@ -1,62 +1,72 @@
 var mustache = require("./lib/mustache");
 
-var viewCache = {};
-var templateCache = {};
+var cache = {};
 
 exports.clearCache = function(){
-  viewCache = {};
-  templateCache = {};
+  cache = {};
 };
 
 
 /**
- * Compile the given `str` of mustache into a `Function`.
+ * compile(str[, options]) -> String
+ * - str(String): A mustache template (in String format)
+ * - options(Object): An optional hash of options
+ *
+ * Compiles the given string of mustache into a Function for rendering later.
+ *
+ * **Options**
+ *
+ * - locals(Object):   Local variables object
+ * - helper(Object):   View helper functions and properties
+ * - cache(Boolean):   Should we cache the mustache template? Requires `filename`
+ * - filename(String): Used by `cache` to key caches
+ *
+ * **Notes**
+ *
+ * Express caches everything for us, so there's no need to provide the `cache`
+ * or `filename` options if unless you're using this method outside of Express'
+ * `response.render()` method.
 **/
 var compile = exports.compile = function(str, options) {
   options = options || {};
 
-  // Grab cached view if present, or provided View if present.
-  var view,
+  // Grab cached helper if present, or provided Helper if present.
+  var helper = options.helper,
       filename = options.filename,
       logging = options.logging;
   
-  if (options.cache && filename && viewCache[filename]) {
-    // If caching enabled, and filename provided, check for cached View
-    view = viewCache[filename];
-    if (logging) console.log("Getting view from cache: ", view);
-  } else {
-    // Use the provided View, if provided...
-    view = options.view;
-    if (logging) console.log("Use view from options: ", view);
+  if (options.cache && !filename) {
+    throw new Error('"cache" option requires "filename".');
+  }
+  
+  // Is caching enabled?
+  if (options.cache && filename && cache[filename]) {
+    // Return the cached template
+    return cache[filename];
   }
 
-  // If no view yet, check for and load the View class file...
-  if (!view && filename && process && process.title == "node") {
-    // No cached view, load the file from disk if possible...
+  // If no helper in options, check for and load the Helper object file...
+  if (!helper && filename && process && process.title == "node") {
+    // Load the file from disk if possible...
     var path = require("path"),
-        viewPath = filename + ".js"; // mytemplate.mustache.js
+        helperPath = filename + ".js"; // mytemplate.mustache.js
 
-    if (path.existsSync(viewPath)) {
-      // Load the view...
-      view = require(viewPath);
-      if (logging) console.log("Loading view from disk: ", view);
+    if (path.existsSync(helperPath)) {
+      // Load the helper...
+      helper = require(helperPath);
+      if (logging) console.log("Loading helper from disk: ", helper);
     }
   }
   
   var render = function(data){
     // If Express is configured to cache views (app.set('cache views', true);),
-    // this method will be cached.
-    if (logging) console.log("Rendering: ", view);
-    return mustache.to_html(str, loadView(view, data));
+    // this render method will be cached.
+    if (logging) console.log("Rendering: ", helper);
+    return mustache.to_html(str, loadHelper(helper, data));
   };
 
   if (options.cache && filename) {
-    if (view && !viewCache[filename]) {
-      // Cache the view if caching is enabled...
-      viewCache[filename] = view;
-      if (logging) console.log("Caching view: ", view);
-    }
-    templateCache[filename] = render;
+    cache[filename] = render;
   }
   
   return render;
@@ -64,18 +74,24 @@ var compile = exports.compile = function(str, options) {
 
 
 /**
- * Render the given `str` of mustache.
+ * render(str[, options]) -> String
+ * - str(String): A mustache template (in String format)
+ * - options(Object): An optional hash of options
  *
- * Options:
+ * Render the String `str` of mustache using the provided data
  *
- *   - `locals`          Local variables object
- *   - `cache`           Compiled functions are cached, requires `filename`.
- *   - `filename`        Used by `cache` to key caches
+ * **Options**
  *
- * @param {String} str
- * @param {Object} options
- * @return {String}
- * @api public
+ * - locals(Object):   Local variables object
+ * - helper(Object):   View helper functions and properties
+ * - cache(Boolean):   Should we cache the mustache template? Requires `filename`
+ * - filename(String): Used by `cache` to key caches
+ *
+ * **Notes**
+ *
+ * Express caches everything for us, so there's no need to provide the `cache`
+ * or `filename` options if unless you're using this method outside of Express'
+ * `response.render()` method.
 **/
 exports.render = function(str, options) {
   options = options || {};
@@ -87,25 +103,25 @@ exports.render = function(str, options) {
 // PRIVATE
 
 /**
- * loadView(view, data) -> view
- * - view(Object): View object used by the template
- * - data(Object): Source data which populates the view
+ * loadHelper(helper, data) -> helper
+ * - helper(Object): Helper object used by the template
+ * - data(Object): Source data which populates the helper
  *
- * Loads the view object using the data object as the source. If `data` contains
- * properties not found on `view`, and getter/setter is created to access it from
- * `view`'s internal data store.
+ * Loads the helper object using the data object as the source. If `data` contains
+ * properties not found on `helper`, and getter/setter is created to access it from
+ * `helper`'s internal data store.
  *
- * Known Express options are not applied to the root-level of `view`, but are
+ * Known Express options are not applied to the root-level of `helper`, but are
  * accessible from the internal `_env` object: `this._env.filename`.
 **/
-function loadView(view, data) {
-  // Clone the view before use, and use a default empty view if not provided.
-  view = Object.create(view || {});
+function loadHelper(helper, data) {
+  // Clone the helper before use, and use a default empty helper if not provided.
+  helper = Object.create(helper || {});
 
-  view._data = data;
-  view._env = {};
+  helper._data = data;
+  helper._env = {};
 
-  // Filter Express data out of the root-level view data.
+  // Filter Express data out of the root-level helper data.
   filter : for(var key in data) {
     switch (key) {
       case "layout":
@@ -117,26 +133,26 @@ function loadView(view, data) {
       case "app":
       case "partial":
       case "filename":
-        view._env[key] = data[key];
+        helper._env[key] = data[key];
         continue filter;
       default: break;
     }
     
-    view._data[key] = data[key];
+    helper._data[key] = data[key];
     
-    if (typeof view[key] == "undefined") {
-      // Create get/set properties pointing from the view -> view._data for any
-      // properties *not* overridden by the view object.
+    if (typeof helper[key] == "undefined") {
+      // Create get/set properties pointing from the helper -> helper._data for any
+      // properties *not* overridden by the helper object.
       (function(key) {
-        Object.defineProperty(view, key, {
-          get: function() { return view._data[key]; },
-          set: function(value) { view._data[key] = value; },
+        Object.defineProperty(helper, key, {
+          get: function() { return helper._data[key]; },
+          set: function(value) { helper._data[key] = value; },
           enumerable : true
         });
       })(key);
     }
   }
   
-  if (view.initialize) view.initialize.call(view);
-  return view;
+  if (helper.initialize) helper.initialize.call(helper);
+  return helper;
 }
