@@ -51,6 +51,8 @@ var compile = exports.compile = function(str, options) {
     var path = require("path"),
         helperPath = filename + ".js"; // mytemplate.mustache.js
 
+    // TODO: Before checking for the helper path, we should check for the
+    // TODO: actual view path... what it that is fake?
     if (path.existsSync(helperPath)) {
       // Load the helper...
       helper = require(helperPath);

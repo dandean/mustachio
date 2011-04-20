@@ -1,3 +1,5 @@
+// NOTE: This build file is a WORK IN PROGRESS, and is basically garbage at the moment. Sorry!
+
 var fs = require("fs"),
     path = require("path"),
     exec = require("child_process").exec,
@@ -59,8 +61,6 @@ task('default', [], function () {
 
 // TODO: add dev dependencies for jake and expresso
 // TODO: write tests that show this package working with Express.js
-// TODO: define file.mustache.js class prototype, and load it when the view is requested
-// TODO: file.mustache and file.mustache.js
 
 desc('Test the distribution');
 task('test', [], function () {
