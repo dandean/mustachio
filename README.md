@@ -1,5 +1,5 @@
-MUSTACHE
-========
+MUSTACHIO
+=========
 
 This project is a **mostly** a convenience wrapper around the original [mustache.js](http://github.com/janl/mustache.js) (Thanks @janl !).
 
@@ -11,8 +11,11 @@ Added Bonus Features
 
 This project will plug right in to Express.js as a view engine. Just add this project as a dependency to your Express application, then configure your app like so:
 
+    var mustachio = require("mustachio");
+
     app.configure(function() {
       // ...
+      app.register('.mustache', mustachio);
       app.set('view engine', 'mustache');
       // ...
     });

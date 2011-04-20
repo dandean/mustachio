@@ -1,4 +1,4 @@
-var mustache = require("./lib/mustache");
+var mustache = require("mustache");
 
 var cache = {};
 
