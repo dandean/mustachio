@@ -2,9 +2,9 @@
   "author": "Dan Dean <@dandean> (http://dandean.com)",
   "name": "mustache",
   "description": "Mustache templates for Node and the browser",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "repository": {
-    "url": ""
+    "url": "git@github.com:dandean/mustache.git"
   },
   "directories": {
     "lib": "."
