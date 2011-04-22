@@ -5,7 +5,6 @@ var express = require("express"),
 app.configure(function() {
   app.register('.mustache', mustachio);
   app.set('view engine', 'mustache');
-  app.set('views', __dirname + '/views');
 });
 
 app.get("/", function(req, res) {

@@ -10,8 +10,10 @@ Added Bonus Features
 ### Support for Express.js ###
 
 This project will plug right in to Express.js as a view engine. Just add this project as a dependency to your Express application, then configure your app like so:
-
-    var mustachio = require("mustachio");
+    
+    var express = require("express"),
+        mustachio = require("mustachio"),
+        app = express.createServer();
 
     app.configure(function() {
       // ...
@@ -23,7 +25,7 @@ This project will plug right in to Express.js as a view engine. Just add this pr
 
 ### View Helper Objects !!! ###
 
-The one really kick-ass killer feature of this project is it's support for **view helper objects**. View helper objects allow you to keep your view-rendering logic truly isolated by providing a space for all of your view-specific logic.
+The one really killer feature of this project is it's support for **view helper objects**. View helper objects allow you to keep your view-rendering logic truly isolated by providing a space for all of your view-specific logic. This keeps your request handlers/controllers clean of view-specific code.
 
 When your template is loaded ("**myview.mustache**", for instance), we also check for a corresponding helper file to load (such as "myview.mustache**.js**").
 
@@ -55,3 +57,10 @@ Our template will get rendered using our god damned amazing helper!
 
     Name: Dan Dean - Age: 5000
 
+#### View Helper Scope ####
+
+One thing to note is how view helper scope works. View helpers only work on their associated views, and are not inherited by parent or child views.
+
+### Examples ###
+
+To see some examples of Mustachio at work, take a peek at the "examples" directory of this module.
