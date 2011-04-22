@@ -155,6 +155,6 @@ function loadHelper(helper, data) {
     }
   }
   
-  if (helper.initialize) helper.initialize.call(helper);
+  if (helper.initialize) helper.initialize();
   return helper;
 }
