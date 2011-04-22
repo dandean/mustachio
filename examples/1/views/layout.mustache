@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{ title }}</title>
+    <style type="text/css">
+      body {
+        font: 12px/14px helvetica;
+        width: 900px;
+        margin: 0 auto;
+      }
+        ul {
+          list-style: none;
+          margin: 1em 0;
+          padding: 0;
+        }
+          ul li {
+            margin: 0 1em 0 0;
+            padding: 0;
+            display: inline-block;
+          }
+    </style>
+  </head>
+  <body>
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/1">Page 1</a></li>
+      <li><a href="/2">Page 2</a></li>
+      <li><a href="/3">Page 3</a></li>
+    </ul>
+    {{{ body }}}
+  </body>
+</html>
