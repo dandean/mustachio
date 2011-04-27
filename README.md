@@ -22,6 +22,8 @@ This project will plug right in to Express.js as a view engine. Just add this pr
       // ...
     });
 
+**Caveat:** due to a bug in older versions of Express, Mustachio will only work with versions 2.2.2+.
+
 
 ### View Helper Objects !!! ###
 
@@ -57,9 +59,11 @@ Our template will get rendered using our god damned amazing helper!
 
     Name: Dan Dean - Age: 5000
 
+
 #### View Helper Scope ####
 
 One thing to note is how view helper scope works. View helpers only work on their associated views, and are not inherited by parent or child views.
+
 
 ### Examples ###
 

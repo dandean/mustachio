@@ -18,12 +18,20 @@ module.exports = {
       app.use(app.router);
     });
 
-    app.get('/', function(req, res){
+    app.get('/test1', function(req, res){
       res.render("test1", { value: "abc" });
     });
 
-    assert.response(app, { url: '/' },
+    app.get('/test2', function(req, res){
+      res.render("test2", { value: "abc" });
+    });
+
+    assert.response(app, { url: '/test1' },
       { status: 200, body: "abc" }
+    );
+
+    assert.response(app, { url: '/test2' },
+      { status: 200, body: "ABC" }
     );
   }
 };

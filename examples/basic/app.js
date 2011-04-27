@@ -29,3 +29,4 @@ app.get("/3", function(req, res) {
 
 
 app.listen("3000");
+console.log("Example application with Mustachio running on port 3000.");

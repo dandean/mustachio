@@ -4,7 +4,7 @@
   "description": "Mustache templates (with View Helpers!) for Node and the browser",
   "version": "0.1.0",
   "repository": {
-    "url": "git@github.com:dandean/mustachio.git"
+    "url": "git://github.com/dandean/mustachio.git"
   },
   "keywords" : ["express", "templates", "mustache"],
   "directories": {
@@ -17,7 +17,7 @@
     "mustache": "*"
   },
   "devDependencies": {
-    "express" : "> 1.9.9",
+    "express" : ">= 2.2.2",
     "expresso": "*"
   }
 }

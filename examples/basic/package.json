@@ -1,21 +1,14 @@
 {
   "author": "Dan Dean <@dandean> (http://dandean.com)",
   "name": "example-1",
-  "description": "Example Mustachio App",
+  "description": "Example App with Mustachio Templates",
   "version": "0.0.0",
-  "repository": {
-    "type": "git",
-    "url": "\"\""
-  },
-  "directories": {
-    "lib": "lib"
-  },
   "engines": {
     "node": ">= 0.4.0"
   },
   "dependencies": {
-    "express": ">= 2.0.0",
-    "mustachio": "*"
+    "express": ">= 2.2.2",
+    "mustachio": "0.1.0"
   },
   "devDependencies": {}
 }
