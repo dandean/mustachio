@@ -2,9 +2,10 @@
   "author": "Dan Dean <@dandean> (http://dandean.com)",
   "name": "mustachio",
   "description": "Mustache templates (with View Helpers!) for Node and the browser",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "repository": {
-    "url": "git://github.com/dandean/mustachio.git"
+    "type" : "git",
+    "url": "https://github.com/dandean/mustachio.git"
   },
   "keywords" : ["express", "templates", "mustache"],
   "directories": {
