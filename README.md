@@ -25,6 +25,18 @@ This project will plug right in to Express.js as a view engine. Just add this pr
 **Caveat:** due to a bug in older versions of Express, Mustachio will only work with versions 2.2.2+.
 
 
+#### Express Partials ####
+
+When using Express, Mustachio supports Express' partial file lookup, so using Mustache's partial syntax should just work. For example, if you put this in your template: `{{> rad }}`, you could put your partial template in any of these places:
+
+    ./rad.mustache
+    ./_rad.mustache
+    ./rad/index.mustache
+    ../rad/index.mustache
+
+File lookup is performed in the above order.
+
+
 ### View Helper Objects !!! ###
 
 The one really killer feature of this project is it's support for **view helper objects**. View helper objects allow you to keep your view-rendering logic truly isolated by providing a space for all of your view-specific logic. This keeps your request handlers/controllers clean of view-specific code.
@@ -72,5 +84,4 @@ To see some examples of Mustachio at work, take a peek at the "examples" directo
 
 ### TODO ###
 
-* Add support for partials using mustache syntax: `{{> partialName }}`.
 * *Actually* support the browser :)
