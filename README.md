@@ -68,3 +68,9 @@ One thing to note is how view helper scope works. View helpers only work on thei
 ### Examples ###
 
 To see some examples of Mustachio at work, take a peek at the "examples" directory of this module.
+
+
+### TODO ###
+
+* Add support for partials using mustache syntax: `{{> partialName }}`.
+* *Actually* support the browser :)
