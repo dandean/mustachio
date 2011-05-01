@@ -53,7 +53,7 @@ myview.mustache.js
 
     module.exports = {
       name: function() {
-        return this._data.first + " " + this._data.last;
+        return this.first + " " + this.last;
       }
     };
 
