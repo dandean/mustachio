@@ -18,7 +18,7 @@
     "mustache": "*"
   },
   "devDependencies": {
-    "express" : ">= 2.2.2",
+    "express" : ">=4.14.1",
     "expresso": "*"
   }
 }
